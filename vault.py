@@ -1,50 +1,69 @@
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-import os
 import hashlib
+import os
+import json
 
-def make_key(password, salt):
-    return hashlib.scrypt(
-        password.encode(),
+def register():
+    username = input("Username: ")
+    password = input("Password: ").encode()
+
+    salt = os.urandom(16)
+
+    hashed = hashlib.scrypt(
+        password,
         salt=salt,
         n=16384,
         r=8,
-        p=1,
-        dklen=32
+        p=1
     )
 
-def encrypt_file(filename, password):
-    salt= os.urandom(16)
-    key = make_key(password, salt)
+    user_data = {
+    "salt": salt.hex(),
+    "hash": hashed.hex()
+    }
 
-    nonce = os.urandom(12)
+    try:
+        with open ("users.json", "r") as file:
+            users = json.load(file)
+    except FileNotFoundError:
+        users = {}
 
-    with open (filename, "rb") as file:
-         data = file.read()
+    users[username] = user_data
 
-    encrypted = AESGCM(key).encrypt(nonce, data, None)
+    with open  ("users.json", "w") as file:
+        json.dump(users, file, indent=4)
 
-    with open(filename + ".enc", "wb") as file:
-        file.write(salt)
-        file.write(nonce)
-        file.write(encrypted)
+    return password
 
-    
-def decrypt_file(filename, password):
-    with open(filename, "rb") as file:
-        salt = file.read(16)
-        nonce = file.read(12)
-        encrypted = file.read()
+def login():
+    username = input("Username: ")
+    password = input("Password: ").encode()
 
-    key = make_key(password, salt)
+    try:
+        with open("users.json", "r") as file:
+            users = json.load(file)
+    except FileNotFoundError:
+        print("no user file found")
+        return
 
-    data = AESGCM(key).decrypt(nonce, encrypted, None)
+    if username not in users:
+        print("Username or password is wrong.")
+        return
 
-    output = filename.removesuffix(".enc")
+    saved_salt = bytes.fromhex(users[username]["salt"])
+    saved_hash = bytes.fromhex(users[username]["hash"])
 
-    with open(output, "wb") as file:
-        file.write(data)
+    new_hash = hashlib.scrypt(
+        password,
+        salt=saved_salt,
+        n=16384,
+        r=8,
+        p=1
+    )
 
-password = "test123"
+    if new_hash == saved_hash:
+        print("Login successfull.")
+        return username, password
 
-#encrypt_file("test.txt", password)
-decrypt_file("test.txt.enc", password)
+    else:
+        print("Username or password is wrong.")
+        return None
