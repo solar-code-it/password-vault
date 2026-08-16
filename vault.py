@@ -1,69 +1,47 @@
-import hashlib
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import os
-import json
+import hashlib
 
-def register():
-    username = input("Username: ")
-    password = input("Password: ").encode()
-
-    salt = os.urandom(16)
-
-    hashed = hashlib.scrypt(
+def make_key(password, salt):
+    return hashlib.scrypt(
         password,
         salt=salt,
         n=16384,
         r=8,
-        p=1
+        p=1,
+        dklen=32
     )
 
-    user_data = {
-    "salt": salt.hex(),
-    "hash": hashed.hex()
-    }
+def encrypt_file(filename, password):
+    print(password)
+    salt= os.urandom(16)
+    key = make_key(password, salt)
 
-    try:
-        with open ("users.json", "r") as file:
-            users = json.load(file)
-    except FileNotFoundError:
-        users = {}
+    nonce = os.urandom(12)
 
-    users[username] = user_data
+    with open (filename, "rb") as file:
+         data = file.read()
 
-    with open  ("users.json", "w") as file:
-        json.dump(users, file, indent=4)
+    encrypted = AESGCM(key).encrypt(nonce, data, None)
 
-    return password
+    with open(filename + ".enc", "wb") as file:
+        file.write(salt)
+        file.write(nonce)
+        file.write(encrypted)
 
-def login():
-    username = input("Username: ")
-    password = input("Password: ").encode()
+    
+def decrypt_file(filename, password):
+    with open(filename, "rb") as file:
+        salt = file.read(16)
+        nonce = file.read(12)
+        encrypted = file.read()
 
-    try:
-        with open("users.json", "r") as file:
-            users = json.load(file)
-    except FileNotFoundError:
-        print("no user file found")
-        return
+    key = make_key(password, salt)
 
-    if username not in users:
-        print("Username or password is wrong.")
-        return
+    data = AESGCM(key).decrypt(nonce, encrypted, None)
 
-    saved_salt = bytes.fromhex(users[username]["salt"])
-    saved_hash = bytes.fromhex(users[username]["hash"])
+    output = filename.removesuffix(".enc")
 
-    new_hash = hashlib.scrypt(
-        password,
-        salt=saved_salt,
-        n=16384,
-        r=8,
-        p=1
-    )
+    with open(output, "wb") as file:
+        file.write(data)
 
-    if new_hash == saved_hash:
-        print("Login successfull.")
-        return username, password
-
-    else:
-        print("Username or password is wrong.")
-        return None
