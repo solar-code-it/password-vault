@@ -32,6 +32,8 @@ def register():
     with open  ("users.json", "w") as file:
         json.dump(users, file, indent=4)
 
+    return password
+
 def login():
     username = input("Username: ")
     password = input("Password: ").encode()
@@ -60,7 +62,7 @@ def login():
 
     if new_hash == saved_hash:
         print("Login successfull.")
-        return username
+        return username, password
 
     else:
         print("Username or password is wrong.")
