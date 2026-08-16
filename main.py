@@ -1,6 +1,7 @@
 from auth import register,login
+from vault import encrypt_file,decrypt_file
 
-def user_menu(username):
+def user_menu(username, password):
     while True:
         print("\nwelcome", username)
         print("1. View data.")
@@ -10,9 +11,9 @@ def user_menu(username):
         choice = input("Choose an option: ")
 
         if choice == "1":
-            print ("viewing data")
+            encrypt_file("test.txt", password)
         elif choice == "2":
-            print ("adding data")
+            decrypt_file("test.txt.enc", password)
         elif choice == "3":
             print("Logged out.")
             break
@@ -32,10 +33,10 @@ while True:
         register()
 
     elif choice == "2":
-        username = login()
+        username, password = login()
 
         if username:
-            user_menu(username)
+            user_menu(username, password)
 
     elif choice == "3":
         print("Goodbye!")
