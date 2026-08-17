@@ -54,7 +54,8 @@ def register():
 def login():
     username = input("Username: ")
     password = input("Password: ").encode()
-
+    
+    # Change file name here.
     if os.path.exists("test.txt.enc"):
         with open("test.txt.enc", "rb") as file:
             salt = file.read(16)
@@ -62,6 +63,7 @@ def login():
         salt = os.urandom(16)
 
         # Create vault file and save the salt.
+        # Change vault name here.
         with open("test.txt.enc", "wb") as file:
             file.write(salt)
 
