@@ -11,6 +11,7 @@ def user_menu(username, key, salt):
 
         choice = input("Choose an option: ")
 
+        # Change file name here for both the decrypted file and none decrypted file.
         if choice == "1":
             decrypt_file("test.txt.enc", key)
         elif choice == "2":
