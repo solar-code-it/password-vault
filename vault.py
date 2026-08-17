@@ -1,22 +1,8 @@
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import os
-import hashlib
 
-def make_key(password, salt):
-    return hashlib.scrypt(
-        password,
-        salt=salt,
-        n=16384,
-        r=8,
-        p=1,
-        dklen=32
-    )
-
-def encrypt_file(filename, password):
-    print(password)
-    salt= os.urandom(16)
-    key = make_key(password, salt)
-
+# Encrypts  text.
+def encrypt_file(filename, key, salt):
     nonce = os.urandom(12)
 
     with open (filename, "rb") as file:
@@ -29,14 +15,12 @@ def encrypt_file(filename, password):
         file.write(nonce)
         file.write(encrypted)
 
-    
-def decrypt_file(filename, password):
+# Decrypts text.
+def decrypt_file(filename, key):
     with open(filename, "rb") as file:
         salt = file.read(16)
         nonce = file.read(12)
         encrypted = file.read()
-
-    key = make_key(password, salt)
 
     data = AESGCM(key).decrypt(nonce, encrypted, None)
 
