@@ -251,14 +251,3 @@ Contributions and suggestions are welcome.
 4. Test them.
 5. Open a pull request.
 
-## License
-
-No license is currently specified for this repository.
-
-You are welcome to use, modify, and build upon the project, but **credit to the original author is appreciated** for the base project.
-
-If you intend to distribute the project publicly, consider adding a formal `LICENSE` file.
-
----
-
-**Password Vault** — a simple project for learning about authentication, key derivation, and file encryption with Python.
